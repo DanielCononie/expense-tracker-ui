@@ -1,0 +1,45 @@
+{
+  "name": "expense-tracker-ui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "ts-node-dev --respawn --transpile-only server/index.ts",
+    "dev:client": "vite --config client/vite.config.ts",
+    "build": "tsc && vite build",
+    "lint": "eslint \"{client,server}/**/*.{ts,tsx,js}\"",
+    "format": "prettier -w .",
+    "format:check": "prettier -c ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^7.3.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.3.0",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
+    "@vitejs/plugin-react": "^5.0.2",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.34.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.6.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3"
+  }
+}
