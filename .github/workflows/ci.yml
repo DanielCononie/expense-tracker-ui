@@ -3,7 +3,7 @@ name: expense-tracker
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build-test-lint:
@@ -29,6 +29,6 @@ jobs:
 
       - name: Unit test
         run: npm run test
-    
+
       - name: Type check
         run: npx tsc --noEmit

@@ -1,6 +1,3 @@
-
 export const CreateAccount = () => {
-  return (
-    <div>CreateAccount</div>
-  )
-}
+  return <div>CreateAccount</div>;
+};
