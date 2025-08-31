@@ -1,5 +1,7 @@
 import { TextField, Box, Typography, Button } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const SLoginContainer = styled(Box)(() => ({
   display: "flex",
@@ -8,6 +10,8 @@ const SLoginContainer = styled(Box)(() => ({
   justifyContent: "space-around",
   height: "100vh",
   backgroundColor: "#9aedda",
+  margin: 0,
+  padding: 0,
 }));
 
 const SLoginRightContainer = styled(Box)(() => ({
@@ -33,13 +37,26 @@ const STextField = styled(TextField)(() => ({
   width: "90%",
 }));
 
-// const validateFormFields = () => {}
+const SButton = styled(Button)(() => ({
+  maxWidth: "200px",
+  width: "100%",
+  backgroundColor: "black",
+}));
 
-// const navigateToCreateAccount = () => {}
+// const validateFormFields = () => {}
 
 // const handleSubmit = () => {}
 
 export const Login = () => {
+  const [username, setUsername] = useState<string>();
+  const [password, setPassword] = useState<string>();
+  const navigate = useNavigate();
+
+  const navigateToCreateAccount = () => {
+    navigate("/create-account");
+    console.log(username, password);
+  };
+
   return (
     <SLoginContainer>
       <SLoginLeftContainer>
@@ -57,8 +74,19 @@ export const Login = () => {
             alignItems: "center",
           }}
         >
-          <STextField required id="username" label="Username" />
-          <STextField required type="password" id="password" label="Password" />
+          <STextField
+            required
+            id="username"
+            label="Username"
+            onChange={(e) => setUsername(e?.target?.value)}
+          />
+          <STextField
+            required
+            type="password"
+            id="password"
+            label="Password"
+            onChange={(e) => setPassword(e?.target?.value)}
+          />
         </Box>
         <Box
           sx={{
@@ -71,12 +99,10 @@ export const Login = () => {
             alignItems: "center",
           }}
         >
-          <Button variant="contained" sx={{ width: "100%", maxWidth: "200px" }}>
-            Login
-          </Button>
-          <Button variant="contained" sx={{ width: "100%", maxWidth: "200px" }}>
+          <SButton variant="contained">Login</SButton>
+          <SButton variant="contained" onClick={navigateToCreateAccount}>
             Create Account
-          </Button>
+          </SButton>
         </Box>
       </SLoginRightContainer>
     </SLoginContainer>
