@@ -2,35 +2,47 @@ name: Auto Upgrade Deps
 
 on:
   schedule:
-    - cron: "0 9 * * *" # runs daily at 09:00 UTC
-  workflow_dispatch: # allow manual run
+    - cron: "0 9 * * *"   # run daily at 09:00 UTC
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Run now (ignore 10-day cadence)?"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
   pull-requests: write
 
-concurrency:
-  group: auto-upgrade
-  cancel-in-progress: false
-
 jobs:
   ncu:
     runs-on: ubuntu-latest
+
     steps:
-      # gate so it only proceeds every 10 days
-      - name: Gate - run only every 10 days
+      # Gate: only proceed every 10th day (unless forced)
+      - name: Gate - run only every 10 days unless forced
         id: gate
-        run: |
-          DAYS=$(( $(date -u +%s) / 86400 ))
-          if [ $((DAYS % 10)) -ne 0 ]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Skipping today (not the 10th-day cadence)."
+        uses: actions/github-script@v7
+        env:
+          FORCE: ${{ github.event.inputs.force || 'false' }}
+        with:
+          script: |
+            const force = process.env.FORCE === 'true';
+            if (force) {
+              core.info('Forced run — skipping cadence gate.');
+              core.setOutput('skip', 'false');
+            } else {
+              const days = Math.floor(Date.now() / 86400000); // days since epoch
+              const skip = (days % 10 !== 0);
+              core.info(`Epoch days=${days} → skip=${skip}`);
+              core.setOutput('skip', String(skip));
+            }
 
       - name: Checkout
         if: steps.gate.outputs.skip != 'true'
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node 22
         if: steps.gate.outputs.skip != 'true'
         uses: actions/setup-node@v4
         with:
@@ -44,7 +56,7 @@ jobs:
       - name: Upgrade deps (npm-check-updates)
         if: steps.gate.outputs.skip != 'true'
         run: |
-          npx npm-check-updates -u
+          npx npm-check-updates -u         # add --target minor to limit to minor/patch
           npm install
 
       - name: Lint
@@ -55,7 +67,7 @@ jobs:
         if: steps.gate.outputs.skip != 'true'
         run: npm run format:check
 
-      - name: Unit tests
+      - name: Tests
         if: steps.gate.outputs.skip != 'true'
         run: npm test
 
@@ -71,9 +83,9 @@ jobs:
           commit-message: "chore: upgrade deps via npm-check-updates"
           title: "chore: upgrade dependencies"
           body: |
-            Automated dependency update via `npm-check-updates`.
-            - Updated package.json and lockfile
-            - CI checks passed (lint, prettier, tests, typecheck)
+            Automated dependency update:
+            - Ran `npx npm-check-updates -u` and `npm install`
+            - Lint, Prettier, tests, and type-check passed.
           labels: dependencies, automated-pr
           signoff: true
           delete-branch: true
