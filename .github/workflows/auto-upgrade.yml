@@ -2,8 +2,8 @@ name: Auto Upgrade Deps
 
 on:
   schedule:
-    - cron: "0 9 * * *"   # runs daily at 09:00 UTC
-  workflow_dispatch:       # allow manual run
+    - cron: "0 9 * * *" # runs daily at 09:00 UTC
+  workflow_dispatch: # allow manual run
 
 permissions:
   contents: write
