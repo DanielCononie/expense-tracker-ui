@@ -1,0 +1,79 @@
+name: Auto Upgrade Deps
+
+on:
+  schedule:
+    - cron: "0 9 * * *"   # runs daily at 09:00 UTC
+  workflow_dispatch:       # allow manual run
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: auto-upgrade
+  cancel-in-progress: false
+
+jobs:
+  ncu:
+    runs-on: ubuntu-latest
+    steps:
+      # gate so it only proceeds every 10 days
+      - name: Gate - run only every 10 days
+        id: gate
+        run: |
+          DAYS=$(( $(date -u +%s) / 86400 ))
+          if [ $((DAYS % 10)) -ne 0 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping today (not the 10th-day cadence)."
+
+      - name: Checkout
+        if: steps.gate.outputs.skip != 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: steps.gate.outputs.skip != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        if: steps.gate.outputs.skip != 'true'
+        run: npm ci
+
+      - name: Upgrade deps (npm-check-updates)
+        if: steps.gate.outputs.skip != 'true'
+        run: |
+          npx npm-check-updates -u
+          npm install
+
+      - name: Lint
+        if: steps.gate.outputs.skip != 'true'
+        run: npm run lint
+
+      - name: Prettier check
+        if: steps.gate.outputs.skip != 'true'
+        run: npm run format:check
+
+      - name: Unit tests
+        if: steps.gate.outputs.skip != 'true'
+        run: npm test
+
+      - name: Type check
+        if: steps.gate.outputs.skip != 'true'
+        run: npx tsc --noEmit
+
+      - name: Create PR
+        if: steps.gate.outputs.skip != 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/deps-${{ github.run_id }}
+          commit-message: "chore: upgrade deps via npm-check-updates"
+          title: "chore: upgrade dependencies"
+          body: |
+            Automated dependency update via `npm-check-updates`.
+            - Updated package.json and lockfile
+            - CI checks passed (lint, prettier, tests, typecheck)
+          labels: dependencies, automated-pr
+          signoff: true
+          delete-branch: true
