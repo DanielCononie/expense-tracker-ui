@@ -43,18 +43,43 @@ const SButton = styled(Button)(() => ({
   backgroundColor: "black",
 }));
 
-// const validateFormFields = () => {}
-
-// const handleSubmit = () => {}
-
 export const Login = () => {
   const [username, setUsername] = useState<string>();
   const [password, setPassword] = useState<string>();
+  const [formValidated, setFormValidated] = useState<{
+    [key: string]: boolean;
+  }>({
+    username: true,
+    password: true,
+  });
   const navigate = useNavigate();
 
   const navigateToCreateAccount = () => {
     navigate("/create-account");
     console.log(username, password);
+  };
+
+  const validateFormFields = () => {
+    if (username && password) {
+      setFormValidated({
+        username: true,
+        password: true,
+      });
+      return true;
+    }
+
+    setFormValidated({
+      username: typeof username === "string" && username.length > 0,
+      password: typeof password === "string" && password.length > 0,
+    });
+    return false;
+  };
+
+  const handleSubmit = () => {
+    if (validateFormFields()) {
+      // verify login credentials return successfully from db after fetch request
+      navigate("/home");
+    }
   };
 
   return (
@@ -79,6 +104,7 @@ export const Login = () => {
             id="username"
             label="Username"
             onChange={(e) => setUsername(e?.target?.value)}
+            error={!formValidated.username}
           />
           <STextField
             required
@@ -86,6 +112,7 @@ export const Login = () => {
             id="password"
             label="Password"
             onChange={(e) => setPassword(e?.target?.value)}
+            error={!formValidated.password}
           />
         </Box>
         <Box
@@ -99,11 +126,18 @@ export const Login = () => {
             alignItems: "center",
           }}
         >
-          <SButton variant="contained">Login</SButton>
+          <SButton variant="contained" onClick={handleSubmit}>
+            Login
+          </SButton>
           <SButton variant="contained" onClick={navigateToCreateAccount}>
             Create Account
           </SButton>
         </Box>
+        {(!formValidated.username || !formValidated.password) && (
+          <Typography variant="body1" color="error" sx={{ mt: 2 }}>
+            Username and password are required
+          </Typography>
+        )}
       </SLoginRightContainer>
     </SLoginContainer>
   );
